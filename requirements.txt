@@ -1,4 +1,4 @@
-    streamlit==1.32.1
+    streamlit==1.39.1
     langchain-community==0.0.28
     langchain==0.0.28  # Добавлено для совместимости
     tinydb==4.7.0
@@ -8,3 +8,4 @@
     streamlit-float
     streamlit-chat
     Pillow==10.4.0
+    pip install googletrans==3.1.0
