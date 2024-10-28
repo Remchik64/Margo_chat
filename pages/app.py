@@ -124,9 +124,13 @@ def submit_question():
     update_user_generations(1)
 
 def translate_text(text):
-    translator = Translator()
-    translation = translator.translate(text, dest='ru')
-    return translation.text
+    try:
+        from googletrans import Translator
+        translator = Translator()
+        translation = translator.translate(text, dest='ru')
+        return translation.text
+    except:
+        return text  # Возвращаем оригинальный текст в случае ошибки
 
 def clear_chat_history():
     chat_db.truncate()  # Очистка базы данных истории чата

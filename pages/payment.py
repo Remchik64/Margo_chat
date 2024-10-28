@@ -19,10 +19,17 @@ if not user_data:
     st.error("Пользователь не найден.")
 else:
     user_data = user_data[0]
+    # Инициализация баланса, если его нет
     if 'balance' not in user_data:
-        st.error("Баланс не найден.")
-    else:
-        st.write(f"Ваш баланс: {round(user_data['balance'], 2)} рублей")
+        user_db.update({'balance': 0.0}, User.username == st.session_state.username)
+        user_data['balance'] = 0.0
+    
+    # Инициализация генераций, если их нет
+    if 'generations' not in user_data:
+        user_db.update({'generations': 0}, User.username == st.session_state.username)
+        user_data['generations'] = 0
+
+    st.write(f"Ваш баланс: {round(user_data['balance'], 2)} рублей")
 
 # Инициализация атрибутов, если они не существуют
 if "generations_to_buy" not in st.session_state:
