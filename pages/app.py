@@ -7,6 +7,7 @@ from googletrans import Translator
 import os
 import base64
 from PIL import Image
+import html
 
 # Проверяем аутентификацию
 if "authenticated" not in st.session_state or not st.session_state.authenticated:
@@ -85,7 +86,7 @@ def submit_question():
     payload = {"question": user_input}
     available_generations = get_user_generations()
     if available_generations <= 0:
-        st.warning("У вас недостаточно генераций. Пожалуйста, купите больше.")
+        st.warning("У вас недостаточно генераций. Пожлуйста, купите больше.")
         return
 
     response = requests.post('https://flowise-renataraev64.amvera.io/api/v1/prediction/99bea477-b813-4f64-a240-b3f85c5d2b2c', json=payload)
@@ -118,10 +119,11 @@ def submit_question():
     if assistant_hash not in st.session_state.message_hashes:
         st.session_state.message_hashes.add(assistant_hash)
         with st.chat_message("assistant", avatar=assistant_avatar):
-            st.write(translated_text)
+            create_copy_button(translated_text, f"new_msg_{len(st.session_state.message_hashes)}")
         chat_db.insert({"role": "assistant", "content": translated_text})
 
     update_user_generations(1)
+    st.rerun()
 
 def translate_text(text):
     try:
@@ -136,6 +138,27 @@ def clear_chat_history():
     chat_db.truncate()  # Очистка базы данных истории чата
     if "message_hashes" in st.session_state:
         del st.session_state["message_hashes"]  # Сброс хэшей сообщений
+
+def create_copy_button(text, key):
+    with st.container():
+        # Отображаем основной текст ответа
+        st.write(text)
+        
+        # Создаем уникальный ключ для каждого сообщения
+        show_key = f"show_{key}"
+        if show_key not in st.session_state:
+            st.session_state[show_key] = False
+            
+        # Используем st.checkbox вместо st.button
+        st.session_state[show_key] = st.checkbox(
+            "📋 Показать для копирования", 
+            value=st.session_state[show_key],
+            key=f"toggle_{key}"
+        )
+            
+        # Показываем область для копирования только если включен показ
+        if st.session_state[show_key]:
+            st.code(text, language=None)
 
 # Основной интерфейс
 st.title("Таро-Марго")
@@ -161,17 +184,38 @@ chat_history = chat_db.all()
 for idx, msg in enumerate(chat_history):
     if msg["role"] == "user":
         avatar = get_user_profile_image(st.session_state.username)
+        with st.chat_message(msg["role"], avatar=avatar):
+            st.write(msg["content"])
     else:
         avatar = assistant_avatar
-    with st.chat_message(msg["role"], avatar=avatar):
-        st.write(msg["content"])
+        with st.chat_message(msg["role"], avatar=avatar):
+            create_copy_button(msg["content"], f"msg_{idx}")
+
+# Инициализация флага очистки, если его нет
+if 'clear_input' not in st.session_state:
+    st.session_state.clear_input = False
+
+# Значение по умолчанию для поля ввода
+default_value = "" if st.session_state.clear_input else st.session_state.get('user_input', '')
 
 # Поле ввода с формой
 with st.form(key='question_form'):
-    st.text_input("Введите ваш вопрос", key="user_input")
+    user_input = st.text_area(
+        "Введите ваш вопрос",
+        value="",
+        key="user_input",
+        height=100,
+        placeholder="Введите ваш вопрос здесь...",
+        help="Нажмите Ctrl+Enter для отправки"
+    )
     submit_button = st.form_submit_button("Отправить")
 
-if submit_button:
+if submit_button and user_input:
     submit_question()
+    # Сбрасываем флаг очистки
+    st.session_state.clear_input = False
 
 st.write(f"Streamlit version: {st.__version__}")
+
+if "clipboard" not in st.session_state:
+    st.session_state.clipboard = ""
