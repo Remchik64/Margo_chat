@@ -128,3 +128,16 @@ if st.button("Выйти"):
     st.session_state.authenticated = False
     st.session_state.username = None
     switch_page("registr")
+
+# После проверки аутентификации
+is_admin = st.session_state.get('is_admin', False)
+
+if is_admin:
+    st.header("Админ-панель")
+    # Показать всех пользователей
+    all_users = user_db.all()
+    st.subheader("Список пользователей")
+    for user in all_users:
+        st.write(f"Пользователь: {user['username']}")
+        st.write(f"Email: {user['email']}")
+        st.write("---")

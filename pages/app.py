@@ -88,7 +88,7 @@ def submit_question():
         st.warning("У вас недостаточно генераций. Пожалуйста, купите больше.")
         return
 
-    response = requests.post('https://flowise-renataraev64.amvera.io/api/v1/prediction/4a4a3f5c-9ebf-4243-8d4f-b3b69dd57313', json=payload)
+    response = requests.post('https://flowise-renataraev64.amvera.io/api/v1/prediction/99bea477-b813-4f64-a240-b3f85c5d2b2c', json=payload)
     output = response.json()
 
     if 'text' not in output:
@@ -138,13 +138,23 @@ def clear_chat_history():
         del st.session_state["message_hashes"]  # Сброс хэшей сообщений
 
 # Основной интерфейс
-st.title("Бизнес-Идея")
+st.title("Таро-Марго")
 st.sidebar.write(f"Доступные генерации: {st.session_state.available_generations}")
 
 # Добавляем кнопку очистки чата
 if st.sidebar.button("Очистить чат"):
     clear_chat_history()
     st.rerun()  # Обновляем страницу для отображения изменений
+
+# В начале файла после проверки аутентификации
+is_admin = st.session_state.get('is_admin', False)
+
+# Добавим админ-панель в сайдбар
+if is_admin:
+    st.sidebar.header("Админ-панель")
+    if st.sidebar.button("Очистить все чаты"):
+        chat_db.truncate()
+        st.rerun()
 
 # Отображение истории сообщений
 chat_history = chat_db.all()

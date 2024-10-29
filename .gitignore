@@ -3,3 +3,7 @@ __pycache__/
 *.db
 *.json
 .env
+.streamlit/secrets.toml
+profile_images/*
+!profile_images/default_user_icon.png
+!profile_images/assistant_icon.png

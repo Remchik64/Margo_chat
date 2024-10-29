@@ -31,8 +31,19 @@ def register_user(username, email, password, profile_image_path=None):
     user_db.insert(user_data)
     return True, "Регистрация успешна"
 
+def check_admin_credentials(username, password):
+    try:
+        return (username == st.secrets["admin"]["username"] and 
+                password == st.secrets["admin"]["password"])
+    except:
+        return False
+
 # Функция для входа в систему
 def login(username, password):
+    # Сначала проверяем админ-доступ
+    if check_admin_credentials(username, password):
+        return True
+        
     User = Query()
     user = user_db.search((User.username == username) & (User.password == password))
     return bool(user)
@@ -50,6 +61,8 @@ if st.button("Login"):
         if login(username, password):
             st.session_state.authenticated = True
             st.session_state.username = username
+            # Добавляем флаг админа
+            st.session_state.is_admin = check_admin_credentials(username, password)
             st.success("Вы вошли в систему")
             switch_page("app")  # Перенаправление в основное приложение
         else:

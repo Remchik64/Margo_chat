@@ -80,3 +80,20 @@ if st.button("Пополнить баланс"):
 for user in user_db.all():
     if 'generations' not in user:
         user_db.update({'generations': 0}, User.username == user['username'])
+
+# После проверки аутентификации
+is_admin = st.session_state.get('is_admin', False)
+
+if is_admin:
+    st.header("Админ-панель")
+    # Управление балансом пользователей
+    all_users = user_db.all()
+    selected_user = st.selectbox("Выберите пользователя", 
+                                [user['username'] for user in all_users])
+    
+    if selected_user:
+        amount = st.number_input("Сумма для изменения баланса", step=100)
+        if st.button("Изменить баланс"):
+            User = Query()
+            user_db.update({'balance': amount}, User.username == selected_user)
+            st.success(f"Баланс пользователя {selected_user} обновлен")
